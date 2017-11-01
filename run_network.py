@@ -2,7 +2,6 @@ import numpy as np
 import help_functions as hf
 from network_class import neural_network
 import matplotlib.pyplot as plt
-np.random.seed(10)
 
 spirals = 4
 X,Y = hf.make_spirals(n_rows=100, spirals=spirals, theta=0.11)
@@ -24,6 +23,8 @@ init_rate = 0.001
 rate = float(init_rate)
 
 losses = []
+smooth_losses = []
+smooth_loss = 0.0
 epochs = 1000
 
 for epoch in range(1, epochs+1):
@@ -35,7 +36,11 @@ for epoch in range(1, epochs+1):
     for mb in minibatches:
         loss += model.run_epoch(mb[0], mb[1], rate) 
     
+    if epoch != 1: smooth_loss = 0.95*smooth_loss + 0.05*loss
+    else: smooth_loss = loss
+    
     losses.append(loss)
+    smooth_losses.append(smooth_loss)
     if epoch % 100 == 0:
         print('Epoch: %i/%i, Rate: %.4f, Loss: %.4f'
               % (epoch, epochs, rate, loss,))
@@ -52,6 +57,11 @@ fig.savefig('test.png')
 plt.close(fig)
 
 fig, ax = plt.subplots( nrows=1, ncols=1 ) 
-plt.plot(np.arange(epochs), losses)
+plt.subplot(2,1,1)
+line1, = plt.plot(np.arange(epochs), losses, c='blue', label='loss')
+plt.legend(handles=[line1], loc=1)
+plt.subplot(2,1,2)
+line2, = plt.plot(np.arange(epochs), smooth_losses, c='red', label='smooth loss')
+plt.legend(handles=[line2], loc=1)
 fig.savefig('losses.png')   
 plt.close(fig)
